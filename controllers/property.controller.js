@@ -19,7 +19,7 @@ exports.createProperty = async (req, res) => {
       videoLink,
       instagramLink,
       extraHighlights,
-      builder, // <-- added here
+      builder,
       metatitle,
       metadescription,
     } = req.body;
@@ -65,8 +65,8 @@ exports.createProperty = async (req, res) => {
       extraHighlights: extraHighlights ? JSON.parse(extraHighlights) : [],
       images,
       brochure,
-      builder: builder || "", // 👈 added builder
-      metatitle: metatitle || "", // ✅ added
+      builder: builder || "",
+      metatitle: metatitle || "",
       metadescription: metadescription || "",
     });
 
@@ -84,7 +84,6 @@ exports.getProperties = async (req, res) => {
 
     const query = {};
 
-    // Purpose filter
     if (purpose) {
       query.purpose = { $regex: new RegExp(purpose, "i") };
     }
