@@ -21,8 +21,8 @@ router.post("/submit", async (req, res) => {
 
     // 📨 Notify admin
     await sendEmail({
-      to: "Info@eipl.co",
-      subject: "New Lead Submission - Ethical",
+      to: "sales@crownpointestates.com",
+      subject: "New Lead Submission ",
       html: `
         <h3>New Lead Details</h3>
         <p><strong>Name:</strong> ${name}</p>
@@ -38,24 +38,32 @@ router.post("/submit", async (req, res) => {
     if (email) {
       await sendEmail({
         to: email,
-        subject: "We've received your query - Ethical Infrastructures",
+        subject: "We've received your query - Crownpoint Estates",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
-            <div style="text-align: center; padding: 20px;">
-              <img src="https://res.cloudinary.com/dcq2oziz4/image/upload/v1764066541/Untitled_design_27_hkp26f.png" alt="Bigwig Media" width="120" />
-            </div>
-            <div style="padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
-              <h2 style="color: #333;">Hello ${name},</h2>
-              <p style="font-size: 16px; color: #555;">
-                Thank you for reaching out to <strong>Ethical Infrastructures Private Limited</strong>.
-                Our team will get in touch with you soon.
-              </p>
-              <p style="margin-top: 30px; font-size: 15px; color: #777;">
-                Regards,<br />
-                <strong>Team Ethical Infrastructures Private Limited</strong>
-              </p>
-            </div>
-          </div>
+  <div style="text-align: center; padding: 20px;">
+    <img src="https://res.cloudinary.com/dcq2oziz4/image/upload/v1764066541/Untitled_design_27_hkp26f.png" alt="Crownpoint Estates" width="120" />
+  </div>
+
+  <div style="padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
+    <h2 style="color: #333;">Hello ${name},</h2>
+
+    <p style="font-size: 16px; color: #555;">
+      Thank you for contacting <strong>Crownpoint Estates</strong>.
+      We appreciate your interest in our premium real estate offerings.
+    </p>
+
+    <p style="font-size: 16px; color: #555;">
+      Our team will review your inquiry and connect with you shortly to assist you with the best property options.
+    </p>
+
+    <p style="margin-top: 30px; font-size: 15px; color: #777;">
+      Warm regards,<br />
+      <strong>Team Crownpoint Estates</strong>
+    </p>
+  </div>
+</div>
+
         `,
       });
     }

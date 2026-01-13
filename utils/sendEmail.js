@@ -14,7 +14,7 @@ const sendEmail = async ({ to, subject, text, html, attachments }) => {
     });
 
     const mailOptions = {
-      from: `"Ethical Infrastructures Pvt Ltd" <${process.env.EMAIL_USER}>`,
+      from: `"Crownpoint Estate" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       text,
