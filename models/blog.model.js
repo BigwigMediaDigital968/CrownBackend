@@ -19,10 +19,14 @@ const blogPostSchema = new mongoose.Schema({
     required: true,
   },
   author: {
-    type: String,
+    type: String, // Just the name, no avatar
     required: true,
   },
   coverImage: {
+    type: String,
+    required: true,
+  },
+  coverImageAlt: {
     type: String,
     required: true,
   },
@@ -32,7 +36,7 @@ const blogPostSchema = new mongoose.Schema({
   },
 
   schemaMarkup: {
-    type: [String],
+    type: [String], // array of JSON-LD strings
     default: [],
   },
 
