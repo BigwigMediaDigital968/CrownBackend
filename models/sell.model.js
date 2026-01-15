@@ -1,36 +1,45 @@
 const mongoose = require("mongoose");
 
-const sellSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
+const sellSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-  title: { type: String, required: true },
-  slug: { type: String, unique: true },
-  description: { type: String, default: "" },
-  purpose: { type: String, default: "Buy" },
-  location: { type: String, default: "" },
-  type: { type: String, default: "" },
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+    },
 
-  images: { type: [String], default: [] },
+    phone: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-  price: { type: Number, default: null },
-  bedrooms: { type: Number, default: null },
-  bathrooms: { type: Number, default: null },
-  areaSqft: { type: Number, default: null },
+    location: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-  highlights: { type: [String], default: [] },
-  featuresAmenities: { type: [String], default: [] },
-  nearby: { type: [String], default: [] },
+    expectedPrice: {
+      type: Number, // store in numbers (₹)
+      required: true,
+    },
 
-  googleMapUrl: { type: String, default: "" },
-  videoLink: { type: String, default: "" },
-  extraHighlights: { type: [String], default: [] },
-  approved: { type: Boolean, default: false },
-  brochure: { type: String, default: "" },
-
-  createdAt: { type: Date, default: Date.now },
-  lastUpdated: { type: Date, default: Date.now },
-});
+    areaSqft: {
+      type: Number,
+      required: true,
+    },
+  },
+  {
+    timestamps: true, // createdAt & updatedAt automatically
+  }
+);
 
 module.exports = mongoose.model("Sell", sellSchema);

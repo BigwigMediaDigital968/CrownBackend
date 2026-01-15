@@ -1,38 +1,31 @@
 const express = require("express");
 const router = express.Router();
-const sellController = require("../controllers/sell.controller");
-const multer = require("multer");
-const storage = require("../config/storage"); // Cloudinary storage
 
-const upload = multer({ storage });
+const {
+  createSell,
+  getAllSells,
+  getSellById,
+  updateSell,
+  deleteSell,
+} = require("../controllers/sell.controller");
 
-// Create a new sell listing with multiple images
-router.post(
-  "/addsell",
-  upload.fields([
-    { name: "images", maxCount: 50 },
-    { name: "brochure", maxCount: 1 },
-  ]), // 'images' is the field name in form-data, max 50 files
-  sellController.createSell
-);
+/* =========================
+   SELL ROUTES
+========================= */
 
-// Get all sell listings
-router.get("/viewsell", sellController.getSells);
+// Create sell enquiry
+router.post("/add", createSell);
 
-// Get single sell listing by slug
-router.get("/:slug", sellController.getSellBySlug);
+// Get all sell enquiries
+router.get("/all", getAllSells);
 
-// Delete a sell listing by slug
-router.delete("/:slug", sellController.deleteSell);
+// Get single sell enquiry
+router.get("/:id", getSellById);
 
-// Update a sell listing by slug
-router.patch(
-  "/:slug",
-  upload.fields([
-    { name: "images", maxCount: 50 },
-    { name: "brochure", maxCount: 1 },
-  ]),
-  sellController.updateSell
-);
+// Update sell enquiry
+router.put("/:id", updateSell);
+
+// Delete sell enquiry
+router.delete("/:id", deleteSell);
 
 module.exports = router;
