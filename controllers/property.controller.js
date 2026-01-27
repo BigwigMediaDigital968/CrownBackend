@@ -203,9 +203,16 @@ exports.updateProperty = async (req, res) => {
       images = [...images, ...newImages];
     }
 
+    // Replace your current brochure section with this:
     let brochure = existing.brochure || "";
+
+    // 1. If a new brochure file is uploaded, use it
     if (req.files?.brochure && req.files.brochure[0]) {
       brochure = req.files.brochure[0].path;
+    }
+    // 2. Otherwise, if frontend asked to remove brochure, clear it
+    else if (req.body.removeBrochure === "true" || req.body.brochure === "") {
+      brochure = "";
     }
 
     let slug = existing.slug;
@@ -264,7 +271,7 @@ exports.updateProperty = async (req, res) => {
     const property = await Property.findOneAndUpdate(
       { slug: req.params.slug },
       { $set: updatedFields },
-      { new: true }
+      { new: true },
     );
 
     res.status(200).json(property);
