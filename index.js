@@ -9,6 +9,7 @@ const sellproperty = require("./routes/sell.route");
 const sellApproval = require("./routes/adminApproval");
 const brochureLeadRoutes = require("./routes/brochureLead");
 const plotRoutes = require("./routes/plot.route");
+const multer = require("multer");
 
 require("dotenv").config();
 
@@ -28,6 +29,20 @@ app.use("/plot", plotRoutes);
 
 app.use("/", (req, res) => {
   res.send("API LIVE🚀");
+});
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    console.error("❌ Multer Error:", err);
+    return res.status(400).json({ message: err.message });
+  }
+
+  if (err) {
+    console.error("❌ Unknown Error:", err);
+    return res.status(500).json({ message: err.message });
+  }
+
+  next();
 });
 
 // Start server

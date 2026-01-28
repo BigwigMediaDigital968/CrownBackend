@@ -10,8 +10,9 @@ router.post(
   upload.fields([
     { name: "images", maxCount: 50 },
     { name: "brochure", maxCount: 1 },
+    { name: "featuredThumbnail", maxCount: 1 },
   ]),
-  propertyController.createProperty
+  propertyController.createProperty,
 );
 
 router.get("/", propertyController.getProperties);
@@ -21,12 +22,13 @@ router.get("/:slug", propertyController.getPropertyBySlug);
 
 router.delete("/:slug", propertyController.deleteProperty);
 
-router.patch(
+router.put(
   "/:slug",
   upload.fields([
     { name: "images", maxCount: 50 },
     { name: "brochure", maxCount: 1 },
+    { name: "featuredThumbnail", maxCount: 1 },
   ]),
-  propertyController.updateProperty
+  propertyController.updateProperty,
 );
 module.exports = router;

@@ -25,12 +25,18 @@ exports.createProperty = async (req, res) => {
     } = req.body;
 
     // ✅ Handle uploaded images
+    // const images = Array.isArray(req.files)
+    //   ? req.files.map((file) => file.path)
+    //   : [];
+
     const images = req.files?.images
       ? req.files.images.map((file) => file.path)
       : [];
 
     // ✅ Handle brochure (PDF)
     const brochure = req.files?.brochure ? req.files.brochure[0].path : "";
+
+    const featuredThumbnail = req.files?.featuredThumbnail?.[0]?.path || "";
 
     // ✅ Generate slug
     const slug = title
@@ -56,6 +62,7 @@ exports.createProperty = async (req, res) => {
       bedrooms,
       bathrooms,
       areaSqft,
+      featuredThumbnail,
       highlights: highlights ? JSON.parse(highlights) : [],
       featuresAmenities: featuresAmenities ? JSON.parse(featuresAmenities) : [],
       nearby: nearby ? JSON.parse(nearby) : [],
@@ -198,9 +205,20 @@ exports.updateProperty = async (req, res) => {
       images = JSON.parse(req.body.existingImages);
     }
 
-    if (req.files?.images) {
+    // if (Array.isArray(req.files) && req.files.length > 0) {
+    //   const newImages = req.files.map((file) => file.path);
+    //   images = [...images, ...newImages];
+    // }
+
+    if (req.files?.images?.length) {
       const newImages = req.files.images.map((file) => file.path);
       images = [...images, ...newImages];
+    }
+
+    let featuredThumbnail = existing.featuredThumbnail || "";
+
+    if (req.files?.featuredThumbnail?.[0]) {
+      featuredThumbnail = req.files.featuredThumbnail[0].path;
     }
 
     // Replace your current brochure section with this:
@@ -262,6 +280,7 @@ exports.updateProperty = async (req, res) => {
         : existing.extraHighlights,
       images,
       brochure,
+      featuredThumbnail,
       builder: req.body.builder ?? existing.builder,
       metatitle: req.body.metatitle ?? existing.metatitle, // ✅ added
       metadescription: req.body.metadescription ?? existing.metadescription, // ✅ added
