@@ -16,8 +16,8 @@ exports.createSell = async (req, res) => {
       email,
       phone,
       location,
-      expectedPrice,
-      areaSqft,
+      expectedPrice: Number(expectedPrice),
+      areaSqft: Number(areaSqft),
     });
 
     await sell.save();
