@@ -1,5 +1,21 @@
 const mongoose = require("mongoose");
 
+const faqSchema = new mongoose.Schema(
+  {
+    question: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    answer: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  { _id: false },
+);
+
 const blogPostSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -32,6 +48,12 @@ const blogPostSchema = new mongoose.Schema({
   },
   tags: {
     type: [String],
+    default: [],
+  },
+
+  // 🔥 NEW: Structured FAQs
+  faqs: {
+    type: [faqSchema],
     default: [],
   },
 

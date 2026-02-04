@@ -6,37 +6,99 @@ const multer = require("multer");
 const storage = require("../config/storage");
 const upload = multer({ storage });
 
+// router.post("/add", upload.single("coverImage"), async (req, res) => {
+//   try {
+//     const { title, slug, excerpt, content, author, tags, coverImageAlt, faqs } =
+//       req.body;
+
+//     if (!req.file || (!req.file.path && !req.file.secure_url)) {
+//       return res.status(400).json({ error: "Cover image is required." });
+//     }
+
+//     if (!content || typeof content !== "string") {
+//       return res
+//         .status(400)
+//         .json({ error: "Blog content (HTML) is required." });
+//     }
+
+//     const coverImage = req.file.secure_url || req.file.path;
+
+//     // ✅ ALT text fallback (SEO-safe)
+//     const imageAltText =
+//       coverImageAlt && coverImageAlt.trim().length > 0
+//         ? coverImageAlt.trim()
+//         : title;
+
+//     let parsedFaqs = [];
+//     if (faqs) {
+//       parsedFaqs = typeof faqs === "string" ? JSON.parse(faqs) : faqs;
+//     }
+
+//     // ✅ Handle schemaMarkup as array (from frontend or Postman)
+//     let schemaMarkup = [];
+//     if (req.body.schemaMarkup) {
+//       if (Array.isArray(req.body.schemaMarkup)) {
+//         schemaMarkup = req.body.schemaMarkup;
+//       } else {
+//         schemaMarkup = [req.body.schemaMarkup];
+//       }
+//     }
+
+//     const blogPost = new BlogPost({
+//       title,
+//       slug,
+//       excerpt,
+//       content,
+//       author,
+
+//       tags: tags?.split(",").map((tag) => tag.trim()),
+//       coverImage,
+//       coverImageAlt: imageAltText,
+//       schemaMarkup, // stored as array
+
+//       // likes is not passed intentionally — default is 0
+//     });
+
+//     await blogPost.save();
+
+//     return res.status(201).json({
+//       message: "Blog post created successfully.",
+//       blogPost,
+//     });
+//   } catch (error) {
+//     console.error("Error creating blog post:", error);
+//     return res.status(500).json({ error: "Internal server error." });
+//   }
+// });
+
 router.post("/add", upload.single("coverImage"), async (req, res) => {
   try {
-    const { title, slug, excerpt, content, author, tags, coverImageAlt } =
+    const { title, slug, excerpt, content, author, tags, coverImageAlt, faqs } =
       req.body;
 
-    if (!req.file || (!req.file.path && !req.file.secure_url)) {
+    if (!req.file) {
       return res.status(400).json({ error: "Cover image is required." });
-    }
-
-    if (!content || typeof content !== "string") {
-      return res
-        .status(400)
-        .json({ error: "Blog content (HTML) is required." });
     }
 
     const coverImage = req.file.secure_url || req.file.path;
 
-    // ✅ ALT text fallback (SEO-safe)
     const imageAltText =
       coverImageAlt && coverImageAlt.trim().length > 0
         ? coverImageAlt.trim()
         : title;
 
-    // ✅ Handle schemaMarkup as array (from frontend or Postman)
+    // ✅ Parse FAQs safely
+    let parsedFaqs = [];
+    if (faqs) {
+      parsedFaqs = typeof faqs === "string" ? JSON.parse(faqs) : faqs;
+    }
+
+    // ✅ Parse schema markup
     let schemaMarkup = [];
     if (req.body.schemaMarkup) {
-      if (Array.isArray(req.body.schemaMarkup)) {
-        schemaMarkup = req.body.schemaMarkup;
-      } else {
-        schemaMarkup = [req.body.schemaMarkup];
-      }
+      schemaMarkup = Array.isArray(req.body.schemaMarkup)
+        ? req.body.schemaMarkup
+        : [req.body.schemaMarkup];
     }
 
     const blogPost = new BlogPost({
@@ -45,24 +107,22 @@ router.post("/add", upload.single("coverImage"), async (req, res) => {
       excerpt,
       content,
       author,
-
       tags: tags?.split(",").map((tag) => tag.trim()),
       coverImage,
       coverImageAlt: imageAltText,
-      schemaMarkup, // stored as array
-
-      // likes is not passed intentionally — default is 0
+      schemaMarkup,
+      faqs: parsedFaqs, // 🔥 THIS WAS MISSING
     });
 
     await blogPost.save();
 
-    return res.status(201).json({
-      message: "Blog post created successfully.",
+    res.status(201).json({
+      message: "Blog post created successfully",
       blogPost,
     });
   } catch (error) {
     console.error("Error creating blog post:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -79,32 +139,93 @@ router.get("/viewblog", async (req, res) => {
   }
 });
 
+// router.put("/:slug", upload.single("coverImage"), async (req, res) => {
+//   const { slug } = req.params;
+//   const { title, content, author, excerpt, tags, schemaMarkup, coverImageAlt } =
+//     req.body;
+
+//   try {
+//     const updateFields = {
+//       ...(title && { title }),
+//       ...(content && { content }),
+//       ...(author && { author }),
+//       ...(excerpt && { excerpt }),
+//       ...(tags && { tags: tags.split(",").map((tag) => tag.trim()) }),
+//       ...(schemaMarkup && { schemaMarkup }), // 🔥 store as-is
+//       ...(coverImageAlt && { coverImageAlt: coverImageAlt.trim() }),
+
+//       lastUpdated: new Date(),
+//     };
+
+//     if (req.file && (req.file.secure_url || req.file.path)) {
+//       updateFields.coverImage = req.file.secure_url || req.file.path;
+//     }
+
+//     const updatedBlogPost = await BlogPost.findOneAndUpdate(
+//       { slug },
+//       updateFields,
+//       { new: true, runValidators: true },
+//     );
+
+//     if (!updatedBlogPost) {
+//       return res.status(404).json({ msg: "Blog post not found" });
+//     }
+
+//     res.status(200).json({
+//       msg: "Blog post updated successfully",
+//       blogPost: updatedBlogPost,
+//     });
+//   } catch (error) {
+//     console.error("Update error:", error.message);
+//     res.status(500).json({ msg: "Server Error" });
+//   }
+// });
+
 router.put("/:slug", upload.single("coverImage"), async (req, res) => {
   const { slug } = req.params;
-  const { title, content, author, excerpt, tags, schemaMarkup, coverImageAlt } =
-    req.body;
 
   try {
+    const {
+      title,
+      content,
+      author,
+      excerpt,
+      tags,
+      schemaMarkup,
+      coverImageAlt,
+      faqs,
+    } = req.body;
+
     const updateFields = {
       ...(title && { title }),
       ...(content && { content }),
       ...(author && { author }),
       ...(excerpt && { excerpt }),
-      ...(tags && { tags: tags.split(",").map((tag) => tag.trim()) }),
-      ...(schemaMarkup && { schemaMarkup }), // 🔥 store as-is
+      ...(tags && { tags: tags.split(",").map((t) => t.trim()) }),
       ...(coverImageAlt && { coverImageAlt: coverImageAlt.trim() }),
-
       lastUpdated: new Date(),
     };
 
-    if (req.file && (req.file.secure_url || req.file.path)) {
+    // ✅ Parse FAQs
+    if (faqs) {
+      updateFields.faqs = typeof faqs === "string" ? JSON.parse(faqs) : faqs;
+    }
+
+    // ✅ Parse schema markup
+    if (schemaMarkup) {
+      updateFields.schemaMarkup = Array.isArray(schemaMarkup)
+        ? schemaMarkup
+        : [schemaMarkup];
+    }
+
+    if (req.file) {
       updateFields.coverImage = req.file.secure_url || req.file.path;
     }
 
     const updatedBlogPost = await BlogPost.findOneAndUpdate(
       { slug },
       updateFields,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!updatedBlogPost) {
@@ -116,7 +237,7 @@ router.put("/:slug", upload.single("coverImage"), async (req, res) => {
       blogPost: updatedBlogPost,
     });
   } catch (error) {
-    console.error("Update error:", error.message);
+    console.error("Update error:", error);
     res.status(500).json({ msg: "Server Error" });
   }
 });
@@ -155,7 +276,7 @@ router.patch("/:slug/image", upload.single("coverImage"), async (req, res) => {
         coverImage: imageUrl,
         lastUpdated: new Date(),
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!updatedBlog) {
