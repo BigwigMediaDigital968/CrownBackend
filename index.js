@@ -18,6 +18,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// ✅ API Routes FIRST
 app.use("/api", subscriberRoutes);
 app.use("/api/lead", leadRoutes);
 app.use("/blog", blogRoutes);
@@ -27,10 +28,12 @@ app.use("/sell", sellApproval);
 app.use("/brochure-leads", brochureLeadRoutes);
 app.use("/plot", plotRoutes);
 
-app.use("/", (req, res) => {
+// ✅ Catch-all route LAST - and use app.get() instead of app.use()
+app.get("/", (req, res) => {
   res.send("API LIVE🚀");
 });
 
+// Error handling middleware
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     console.error("❌ Multer Error:", err);
