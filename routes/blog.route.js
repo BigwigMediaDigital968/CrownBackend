@@ -6,75 +6,20 @@ const multer = require("multer");
 const storage = require("../config/storage");
 const upload = multer({ storage });
 
-// router.post("/add", upload.single("coverImage"), async (req, res) => {
-//   try {
-//     const { title, slug, excerpt, content, author, tags, coverImageAlt, faqs } =
-//       req.body;
-
-//     if (!req.file || (!req.file.path && !req.file.secure_url)) {
-//       return res.status(400).json({ error: "Cover image is required." });
-//     }
-
-//     if (!content || typeof content !== "string") {
-//       return res
-//         .status(400)
-//         .json({ error: "Blog content (HTML) is required." });
-//     }
-
-//     const coverImage = req.file.secure_url || req.file.path;
-
-//     // ✅ ALT text fallback (SEO-safe)
-//     const imageAltText =
-//       coverImageAlt && coverImageAlt.trim().length > 0
-//         ? coverImageAlt.trim()
-//         : title;
-
-//     let parsedFaqs = [];
-//     if (faqs) {
-//       parsedFaqs = typeof faqs === "string" ? JSON.parse(faqs) : faqs;
-//     }
-
-//     // ✅ Handle schemaMarkup as array (from frontend or Postman)
-//     let schemaMarkup = [];
-//     if (req.body.schemaMarkup) {
-//       if (Array.isArray(req.body.schemaMarkup)) {
-//         schemaMarkup = req.body.schemaMarkup;
-//       } else {
-//         schemaMarkup = [req.body.schemaMarkup];
-//       }
-//     }
-
-//     const blogPost = new BlogPost({
-//       title,
-//       slug,
-//       excerpt,
-//       content,
-//       author,
-
-//       tags: tags?.split(",").map((tag) => tag.trim()),
-//       coverImage,
-//       coverImageAlt: imageAltText,
-//       schemaMarkup, // stored as array
-
-//       // likes is not passed intentionally — default is 0
-//     });
-
-//     await blogPost.save();
-
-//     return res.status(201).json({
-//       message: "Blog post created successfully.",
-//       blogPost,
-//     });
-//   } catch (error) {
-//     console.error("Error creating blog post:", error);
-//     return res.status(500).json({ error: "Internal server error." });
-//   }
-// });
-
+// Create Blog
 router.post("/add", upload.single("coverImage"), async (req, res) => {
   try {
-    const { title, slug, excerpt, content, author, tags, coverImageAlt, faqs } =
-      req.body;
+    const {
+      title,
+      slug,
+      excerpt,
+      content,
+      author,
+      tags,
+      coverImageAlt,
+      faqs,
+      status, // 🔥 NEW
+    } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ error: "Cover image is required." });
@@ -87,13 +32,13 @@ router.post("/add", upload.single("coverImage"), async (req, res) => {
         ? coverImageAlt.trim()
         : title;
 
-    // ✅ Parse FAQs safely
+    // Parse FAQs
     let parsedFaqs = [];
     if (faqs) {
       parsedFaqs = typeof faqs === "string" ? JSON.parse(faqs) : faqs;
     }
 
-    // ✅ Parse schema markup
+    // Parse schema markup
     let schemaMarkup = [];
     if (req.body.schemaMarkup) {
       schemaMarkup = Array.isArray(req.body.schemaMarkup)
@@ -111,7 +56,9 @@ router.post("/add", upload.single("coverImage"), async (req, res) => {
       coverImage,
       coverImageAlt: imageAltText,
       schemaMarkup,
-      faqs: parsedFaqs, // 🔥 THIS WAS MISSING
+      faqs: parsedFaqs,
+      status: status || "DRAFT", // 🔥 Default to DRAFT
+      datePublished: status === "PUBLISHED" ? new Date() : undefined,
     });
 
     await blogPost.save();
@@ -126,7 +73,8 @@ router.post("/add", upload.single("coverImage"), async (req, res) => {
   }
 });
 
-router.get("/viewblog", async (req, res) => {
+// Admin view Blog
+router.get("/admin/viewblog", async (req, res) => {
   try {
     const data = await BlogPost.find().sort({
       datePublished: -1,
@@ -139,48 +87,21 @@ router.get("/viewblog", async (req, res) => {
   }
 });
 
-// router.put("/:slug", upload.single("coverImage"), async (req, res) => {
-//   const { slug } = req.params;
-//   const { title, content, author, excerpt, tags, schemaMarkup, coverImageAlt } =
-//     req.body;
+// View Blog
+router.get("/viewblog", async (req, res) => {
+  try {
+    const data = await BlogPost.find({ status: "PUBLISHED" }).sort({
+      datePublished: -1,
+    });
 
-//   try {
-//     const updateFields = {
-//       ...(title && { title }),
-//       ...(content && { content }),
-//       ...(author && { author }),
-//       ...(excerpt && { excerpt }),
-//       ...(tags && { tags: tags.split(",").map((tag) => tag.trim()) }),
-//       ...(schemaMarkup && { schemaMarkup }), // 🔥 store as-is
-//       ...(coverImageAlt && { coverImageAlt: coverImageAlt.trim() }),
+    res.status(200).json(data);
+  } catch (error) {
+    console.log("Error fetching blogs:", error);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
 
-//       lastUpdated: new Date(),
-//     };
-
-//     if (req.file && (req.file.secure_url || req.file.path)) {
-//       updateFields.coverImage = req.file.secure_url || req.file.path;
-//     }
-
-//     const updatedBlogPost = await BlogPost.findOneAndUpdate(
-//       { slug },
-//       updateFields,
-//       { new: true, runValidators: true },
-//     );
-
-//     if (!updatedBlogPost) {
-//       return res.status(404).json({ msg: "Blog post not found" });
-//     }
-
-//     res.status(200).json({
-//       msg: "Blog post updated successfully",
-//       blogPost: updatedBlogPost,
-//     });
-//   } catch (error) {
-//     console.error("Update error:", error.message);
-//     res.status(500).json({ msg: "Server Error" });
-//   }
-// });
-
+// Update Blog
 router.put("/:slug", upload.single("coverImage"), async (req, res) => {
   const { slug } = req.params;
 
@@ -194,6 +115,7 @@ router.put("/:slug", upload.single("coverImage"), async (req, res) => {
       schemaMarkup,
       coverImageAlt,
       faqs,
+      status, // 🔥 NEW
     } = req.body;
 
     const updateFields = {
@@ -203,15 +125,19 @@ router.put("/:slug", upload.single("coverImage"), async (req, res) => {
       ...(excerpt && { excerpt }),
       ...(tags && { tags: tags.split(",").map((t) => t.trim()) }),
       ...(coverImageAlt && { coverImageAlt: coverImageAlt.trim() }),
+      ...(status && { status }), // 🔥 Update status
       lastUpdated: new Date(),
     };
 
-    // ✅ Parse FAQs
+    // If status becomes PUBLISHED → set datePublished
+    if (status === "PUBLISHED") {
+      updateFields.datePublished = new Date();
+    }
+
     if (faqs) {
       updateFields.faqs = typeof faqs === "string" ? JSON.parse(faqs) : faqs;
     }
 
-    // ✅ Parse schema markup
     if (schemaMarkup) {
       updateFields.schemaMarkup = Array.isArray(schemaMarkup)
         ? schemaMarkup
@@ -242,6 +168,7 @@ router.put("/:slug", upload.single("coverImage"), async (req, res) => {
   }
 });
 
+// Delete Blog
 router.delete("/:slug", async (req, res) => {
   const { slug } = req.params;
 
@@ -293,6 +220,7 @@ router.patch("/:slug/image", upload.single("coverImage"), async (req, res) => {
   }
 });
 
+// Related Blogs
 router.get("/related/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
@@ -313,6 +241,7 @@ router.get("/related/:slug", async (req, res) => {
       relatedBlogs = await BlogPost.find({
         slug: { $ne: slug }, // exclude current blog
         tags: { $in: tags }, // match any tag
+        status: "PUBLISHED",
       })
         .sort({ datePublished: -1 })
         .limit(4);
@@ -332,6 +261,30 @@ router.get("/related/:slug", async (req, res) => {
     console.error("Error fetching related blogs:", error);
     res.status(500).json({ msg: "Server Error" });
   }
+});
+
+// Admin Control
+router.patch("/:slug/status", async (req, res) => {
+  const { slug } = req.params;
+  const { status } = req.body;
+
+  if (!["DRAFT", "PUBLISHED", "INACTIVE"].includes(status)) {
+    return res.status(400).json({ msg: "Invalid status value" });
+  }
+
+  const updateData = { status, lastUpdated: new Date() };
+
+  if (status === "PUBLISHED") {
+    updateData.datePublished = new Date();
+  }
+
+  const blog = await BlogPost.findOneAndUpdate({ slug }, updateData, {
+    new: true,
+  });
+
+  if (!blog) return res.status(404).json({ msg: "Blog not found" });
+
+  res.status(200).json({ msg: "Status updated", blog });
 });
 
 module.exports = router;

@@ -51,7 +51,12 @@ const blogPostSchema = new mongoose.Schema({
     default: [],
   },
 
-  // 🔥 NEW: Structured FAQs
+  status: {
+    type: String,
+    enum: ["DRAFT", "PUBLISHED", "INACTIVE"],
+    default: "DRAFT",
+  },
+
   faqs: {
     type: [faqSchema],
     default: [],
