@@ -22,12 +22,9 @@ exports.createProperty = async (req, res) => {
       builder,
       metatitle,
       metadescription,
+      extraDetails,
+      faqs,
     } = req.body;
-
-    // ✅ Handle uploaded images
-    // const images = Array.isArray(req.files)
-    //   ? req.files.map((file) => file.path)
-    //   : [];
 
     const images = req.files?.images
       ? req.files.images.map((file) => file.path)
@@ -70,6 +67,8 @@ exports.createProperty = async (req, res) => {
       videoLink: videoLink || "",
       instagramLink: instagramLink || "",
       extraHighlights: extraHighlights ? JSON.parse(extraHighlights) : [],
+      faqs: faqs ? JSON.parse(faqs) : [], // ✅ added
+      extraDetails: extraDetails || "", // ✅ added
       images,
       brochure,
       builder: builder || "",
@@ -278,6 +277,14 @@ exports.updateProperty = async (req, res) => {
       extraHighlights: req.body.extraHighlights
         ? JSON.parse(req.body.extraHighlights)
         : existing.extraHighlights,
+
+      faqs: req.body.faqs ? JSON.parse(req.body.faqs) : existing.faqs,
+
+      extraDetails:
+        req.body.extraDetails !== undefined
+          ? req.body.extraDetails
+          : existing.extraDetails,
+
       images,
       brochure,
       featuredThumbnail,

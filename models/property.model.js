@@ -33,6 +33,14 @@ const propertySchema = new mongoose.Schema({
   extraHighlights: { type: [String], default: [] },
   instagramLink: { type: String, default: "" },
 
+  extraDetails: { type: String, default: "" },
+  faqs: [
+    {
+      question: { type: String, default: "" },
+      answer: { type: String, default: "" },
+    },
+  ],
+
   createdAt: { type: Date, default: Date.now },
   lastUpdated: { type: Date, default: Date.now },
   metatitle: { type: String, default: "" },
