@@ -133,6 +133,58 @@ router.post("/verify-otp", async (req, res) => {
   }
 });
 
+router.post("/create-lead", async (req, res) => {
+  const { name, email, phone, requirements, budget, message } = req.body;
+
+  try {
+    const leadData = {
+      name,
+      email,
+      phone,
+      requirements,
+      budget,
+      message,
+    };
+    const newLead = new Lead(leadData);
+    console.log("newLead", newLead);
+
+    await newLead.save();
+
+    // 📨 Admin notification
+    await sendEmail({
+      to: "sales@crownpointestates.com",
+      subject: "New Verified Lead",
+      html: `
+        <h3>New Verified Lead</h3>
+        <p><strong>Name:</strong> ${leadData.name}</p>
+        <p><strong>Email:</strong> ${leadData.email || "N/A"}</p>
+        <p><strong>Phone:</strong> ${leadData.phone}</p>
+        <p><strong>Requirements:</strong> ${leadData.requirements}</p>
+        <p><strong>Budget:</strong> ${leadData.budget}</p>
+        <p><strong>Message:</strong> ${leadData.message}</p>
+      `,
+    });
+
+    // 📬 User confirmation
+    if (leadData.email) {
+      await sendEmail({
+        to: leadData.email,
+        subject: "Query Verified - Crownpoint Estates",
+        html: `
+          <p>Hello ${leadData.name},</p>
+          <p>Your enquiry has been successfully verified.</p>
+          <p>Our team will contact you shortly.</p>
+          <p>– Team Crownpoint Estates</p>
+        `,
+      });
+    }
+    res.status(200).json({ message: "Lead submitted successfully" });
+  } catch (err) {
+    console.error("Form Error:", err);
+    res.status(500).json({ message: "Sucess failure! Please try later." });
+  }
+});
+
 /* ============================
    📄 FETCH ALL LEADS
 =============================== */
@@ -179,11 +231,14 @@ router.delete("/:id", async (req, res) => {
 /* ============================
    🧹 AUTO CLEAN EXPIRED OTPs
 =============================== */
-setInterval(() => {
-  const now = Date.now();
-  for (const [phone, record] of otpMap.entries()) {
-    if (record.expiresAt < now) otpMap.delete(phone);
-  }
-}, 10 * 60 * 1000);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [phone, record] of otpMap.entries()) {
+      if (record.expiresAt < now) otpMap.delete(phone);
+    }
+  },
+  10 * 60 * 1000,
+);
 
 module.exports = router;
