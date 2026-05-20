@@ -87,11 +87,18 @@ exports.createProperty = async (req, res) => {
 exports.getProperties = async (req, res) => {
   try {
     const { type, location, purpose, page = 1, limit = 9 } = req.query;
-
     const query = {};
 
+    const sortOrder = req.query.sortBy === "oldest" ? 1 : -1;
+    // Purpose filter — normalize to match enum: "Buy" | "Rent" | "Lease"
     if (purpose) {
-      query.purpose = { $regex: new RegExp(purpose, "i") };
+      const normalized = purpose.charAt(0).toUpperCase() + purpose.slice(1).toLowerCase();
+      const validPurposes = ["Buy", "Rent", "Lease"];
+      if (validPurposes.includes(normalized)) {
+        query.purpose = normalized;
+      } else {
+        return res.status(400).json({ message: `Invalid purpose. Must be one of: ${validPurposes.join(", ")}` });
+      }
     }
 
     // Type filter
@@ -101,9 +108,7 @@ exports.getProperties = async (req, res) => {
 
     // Multi-location filter
     if (location && location !== "all") {
-      const locationsArray = location.split(",");
-
-      // Apply OR condition
+      const locationsArray = location.split(",").map((loc) => loc.trim());
       query.location = {
         $in: locationsArray.map((loc) => new RegExp(loc, "i")),
       };
@@ -113,7 +118,7 @@ exports.getProperties = async (req, res) => {
 
     const [properties, total] = await Promise.all([
       Property.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: sortOrder })
         .skip(skip)
         .limit(Number(limit)),
       Property.countDocuments(query),
@@ -132,7 +137,6 @@ exports.getProperties = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch properties", error });
   }
 };
-
 exports.getPropertiesBySlugs = async (req, res) => {
   try {
     const { slugs } = req.query;
